@@ -22,8 +22,7 @@
 import json
 import logging
 import requests
-from grimoirelab_toolkit.datetime import (datetime_utcnow,
-                                          str_to_datetime)
+from grimoirelab_toolkit.datetime import (str_to_datetime)
 from grimoirelab_toolkit.uris import urijoin
 
 from ...backend import (Backend,
@@ -266,15 +265,6 @@ class PagureClient(HttpClient, RateLimitHandler):
                          extra_headers=self._set_extra_headers(),
                          extra_status_forcelist=self.EXTRA_STATUS_FORCELIST,
                          archive=archive, from_archive=from_archive, ssl_verify=ssl_verify)
-
-    def calculate_time_to_reset(self):
-        """Calculate the seconds to reset the token requests, by obtaining the different
-        between the current date and the next date when the token is fully regenerated.
-        """
-        time_to_reset = self.rate_limit_reset_ts - (datetime_utcnow().replace(microsecond=0).timestamp() + 1)
-        time_to_reset = 0 if time_to_reset < 0 else time_to_reset
-
-        return time_to_reset
 
     def issues(self, from_date=None):
         """Fetch the issues from the repository.
