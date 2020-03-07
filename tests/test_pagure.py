@@ -646,6 +646,46 @@ class TestPagureClient(unittest.TestCase):
         with self.assertRaises(requests.exceptions.RetryError):
             _ = [issues for issues in client.issues()]
 
+    @httpretty.activate
+    def test_get_page_issues(self):
+        """Test issues pagination API call"""
+
+        issue_1 = read_file('data/pagure/pagure_repo_issue_1')
+        issue_2 = read_file('data/pagure/pagure_repo_only_issue_2')
+
+        httpretty.register_uri(httpretty.GET,
+                               PAGURE_ISSUES_URL,
+                               body=issue_1,
+                               status=200,
+                               forcing_headers={
+                                   'Link': '<' + PAGURE_ISSUES_URL + '/?&page=2>; rel="next", <' +
+                                           PAGURE_ISSUES_URL + '/?&page=3>; rel="last"'
+                               })
+        httpretty.register_uri(httpretty.GET,
+                               PAGURE_ISSUES_URL + '/?&page=2',
+                               body=issue_2,
+                               status=200,
+                               )
+
+        client = PagureClient(namespace=None, repository="Project-example", token="aaa")
+
+        issues = [issues for issues in client.issues()]
+
+        self.assertEqual(len(issues), 2)
+        self.assertEqual(issues[0], issue_1)
+        self.assertEqual(issues[1], issue_2)
+
+        # Check requests
+        expected = {
+            'status': ['all'],
+            'page': ['2'],
+            'per_page': ['100'],
+            'order': ['asc']
+        }
+
+        self.assertDictEqual(httpretty.last_request().querystring, expected)
+        self.assertEqual(httpretty.last_request().headers["Authorization"], "token aaa")
+
 
 class TestPagureCommand(unittest.TestCase):
     """PagureCommand unit tests"""
