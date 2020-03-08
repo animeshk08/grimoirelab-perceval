@@ -51,7 +51,7 @@ logger = logging.getLogger(__name__)
 class Pagure(Backend):
     """Pagure backend for Perceval.
 
-    This class allows the fetch the issues stored in Pagure
+    This class allows the fetch the issues stored in a Pagure
     repository. Note that api token is needed to perform
     certain API calls
 
@@ -79,7 +79,7 @@ class Pagure(Backend):
                  max_items=MAX_CATEGORY_ITEMS_PER_PAGE, ssl_verify=True):
         origin = PAGURE_URL
 
-        # In case repository is under a namespace add the namespace as well to the origin
+        # In case the repository is under a namespace add the namespace as well to the origin
         origin = urijoin(origin, namespace, repository) if namespace else urijoin(origin, repository)
 
         super().__init__(origin, tag=tag, archive=archive, ssl_verify=ssl_verify)
@@ -114,8 +114,8 @@ class Pagure(Backend):
               filter_classified=False):
         """Fetch the issues from the repository.
 
-        The method retrieves, from a Pagure repository, the issues
-        updated since the given date.
+        The method retrieves, from a Pagure repository,
+        the issues updated since/until the given date.
 
         :param category: the category of items to fetch
         :param from_date: obtain issues updated since this date
@@ -232,11 +232,11 @@ class Pagure(Backend):
                 yield issue
 
 
-class PagureClient(HttpClient, RateLimitHandler):
-    """Client for retieving information from Pagure API
+class PagureClient(HttpClient):
+    """Client for retrieving information from Pagure API
 
     :param namespace: Pagure namespace
-    :param repository: Pagure repository; incase the repository is within a namespace
+    :param repository: Pagure repository; in case the repository is within a namespace
     :param token: Pagure API token to access the API
     :param sleep_time: time to sleep in case
         of connection problems
@@ -248,7 +248,6 @@ class PagureClient(HttpClient, RateLimitHandler):
     :param from_archive: it tells whether to write/read the archive
     :param ssl_verify: enable/disable SSL verification
     """
-    EXTRA_STATUS_FORCELIST = [403, 500, 502, 503]
 
     def __init__(self, namespace, repository, token,
                  sleep_time=DEFAULT_SLEEP_TIME, max_retries=MAX_RETRIES,
@@ -263,7 +262,6 @@ class PagureClient(HttpClient, RateLimitHandler):
 
         super().__init__(base_url, sleep_time=sleep_time, max_retries=max_retries,
                          extra_headers=self._set_extra_headers(),
-                         extra_status_forcelist=self.EXTRA_STATUS_FORCELIST,
                          archive=archive, from_archive=from_archive, ssl_verify=ssl_verify)
 
     def issues(self, from_date=None):
@@ -294,7 +292,6 @@ class PagureClient(HttpClient, RateLimitHandler):
         :param url: link to the resource
         :param payload: payload of the request
         :param headers: headers of the request
-        :param auth: auth of the request
 
         :returns a response object
         """
@@ -315,14 +312,11 @@ class PagureClient(HttpClient, RateLimitHandler):
         :param path: Path from which the item is to be fetched
         :param payload: Payload to be added to the request
 
-        :returns: an item object
+        :returns: a generator of items
         """
         page = 0  # current page
         last_page = None  # last page
-        if self.namespace:  # if project is under a namespace
-            url_next = urijoin(PAGURE_API_URL, self.namespace, self.repository, path)
-        else:  # if project is created without a namespace
-            url_next = urijoin(PAGURE_API_URL, self.repository, path)
+        url_next = self.__get_url_item(path)
         logger.debug("Get Pagure paginated items from " + url_next)
 
         response = self.fetch(url_next, payload=payload)
@@ -359,6 +353,26 @@ class PagureClient(HttpClient, RateLimitHandler):
             headers = {'Authorization': "token %s" % self.token}
 
         return headers
+
+    def __get_url_item(self, path):
+        """Returns the url from which the item is to be fetched"""
+
+        if self.namespace:  # if project is under a namespace
+            url = self.__get_url_namespace_repository()
+        else:  # if project is created without a namespace
+            url = self.__get_url_repository()
+
+        return urijoin(url, path)
+
+    def __get_url_namespace_repository(self):
+        """Build URL for a repository within a namespace"""
+
+        return urijoin(self.base_url, self.namespace, self.repository)
+
+    def __get_url_repository(self):
+        """Build URL for a repository"""
+
+        return urijoin(self.base_url, self.repository)
 
 
 class PagureCommand(BackendCommand):

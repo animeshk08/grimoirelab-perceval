@@ -4,10 +4,10 @@
     "author": null,
     "milestones": [],
     "no_stones": null,
-    "order": null,
+    "order": "asc",
     "priority": null,
     "since": "2020-03-07",
-    "status": null,
+    "status": "all",
     "tags": []
   },
   "issues": [
@@ -73,12 +73,12 @@
     }
   ],
   "pagination": {
-    "first": "https://pagure.io/api/0/Project-example/issues?per_page=20&since=2020-03-07&page=1",
-    "last": "https://pagure.io/api/0/Project-example/issues?per_page=20&since=2020-03-07&page=1",
+    "first": "https://pagure.io/api/0/Project-example/issues?status=all&per_page=100&since=2020-03-07&page=1&order=asc",
+    "last": "https://pagure.io/api/0/Project-example/issues?status=all&per_page=100&since=2020-03-07&page=1&order=asc",
     "next": null,
     "page": 1,
     "pages": 1,
-    "per_page": 20,
+    "per_page": 100,
     "prev": null
   },
   "total_issues": 1
