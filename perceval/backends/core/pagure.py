@@ -29,7 +29,7 @@ from ...backend import (Backend,
                         BackendCommand,
                         BackendCommandArgumentParser,
                         DEFAULT_SEARCH_FIELD)
-from ...client import HttpClient, RateLimitHandler
+from ...client import HttpClient
 from ...utils import DEFAULT_DATETIME, DEFAULT_LAST_DATETIME
 from datetime import datetime
 
