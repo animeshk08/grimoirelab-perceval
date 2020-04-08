@@ -27,7 +27,6 @@ import httpretty
 import pkg_resources
 import requests
 import dateutil.tz
-import copy
 
 pkg_resources.declare_namespace('perceval.backends')
 
@@ -626,7 +625,6 @@ class TestPagureClient(unittest.TestCase):
 
         self.assertDictEqual(httpretty.last_request().querystring, expected)
         self.assertEqual(httpretty.last_request().headers["Authorization"], "token aaa")
-
 
 
 class TestPagureCommand(unittest.TestCase):
