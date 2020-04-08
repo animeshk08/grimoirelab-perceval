@@ -7,7 +7,9 @@ python:
 sudo: false
 
 before_install:
+  - easy_install --version
   - pip install --upgrade setuptools
+  - easy_install --version
   - pip install -r "requirements.txt"
   - pip install -r "requirements_tests.txt"
   - pip install flake8
