@@ -150,6 +150,7 @@ class Pagure(Backend):
         :returns: a generator of items
         """
         from_date = kwargs['from_date']
+        print("hello")
         to_date = kwargs['to_date']
         items = self.__fetch_issues(from_date, to_date)
         return items
